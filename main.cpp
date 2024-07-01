@@ -77,6 +77,8 @@ std::vector<mpz_class> readNumbersFromFile2(const QString &fileName, size_t coun
     return list_of_synapses;
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Пример использования функции
 // QString fileName = "numbers.dat";
 // size_t count = 10; // Пример количества чисел для чтения
@@ -86,9 +88,39 @@ std::vector<mpz_class> readNumbersFromFile2(const QString &fileName, size_t coun
 //     std::cout << num.get_str() << std::endl;
 // }
 //########################################################################
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+mpz_class activationFunction( // long long list_of_neurons.at(var)
+    int var
+    //  ,
+    //   int b
+    )
+{
+  //  mpz_class base, exponent, result;
+
+    mpz_class giperparametr =2;//0;//2;//200;
+   // base=3; /// тут скорее 3 потому что 2,7
+   // exponent = list_of_neurons.at(var); // степень
+   // result = pow(base, exponent);
+    // Инициализация больших целых чисел
+    mpz_class base("3");
+    mpz_class exp(list_of_neurons.at(var));
+    mpz_class mod("4611686018000000000");
+    mpz_class result;
+    // Вычисление (base ^ exp) % mod
+    mpz_powm(result.get_mpz_t(), base.get_mpz_t(), exp.get_mpz_t(), mod.get_mpz_t());
+   // mpz_powm ( result,  3,  exponent, 4611686018000000000);
+    if (list_of_neurons.at(var) <= 0)
+        list_of_neurons.at(var) =list_of_neurons.at(var) * giperparametr * (result - 1);
+    return (  list_of_neurons.at(var));
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
-
+//########################################################################################################
+    std::cout << "Funktsiya_Resheniya_6" << std::endl;
+//########################################################################################################
     return a.exec();
 }
