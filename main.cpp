@@ -24,11 +24,12 @@ bool Odin_Uchitelia;
 bool Odin_Programmi;
 int var;
 int neuron_index = 0, synapse_index = 0;
-std::vector<mpz_class> list_of_neurons;
-std::vector<mpz_class> list_of_synapses;
+
 constexpr size_t NUM_SYNAPSES = 10105;
 
-constexpr size_t NUM_NEYRONS = 200 ;
+constexpr size_t NUM_NEYRONS = 205 ;
+std::vector<mpz_class> list_of_neurons(NUM_NEYRONS);
+std::vector<mpz_class> list_of_synapses(NUM_SYNAPSES);
 //const mpz_class MAX_VALUE("18446744073709551615");
 const std::string FILE_PATH = "/home/viktor/my_projects_qt_2/sgenerirovaty_sinapsi/random_sinapsi.bin";
 //##################################################################
@@ -66,34 +67,9 @@ void printVector(const std::vector<mpz_class>& list_of_synapses) {
         i++;
     }
 }
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Функция для чтения чисел-нейронов из бинарного файла
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void readFromFile2(std::vector<mpz_class>& list_of_neurons, const std::string& filePath) {
-    std::ifstream inFile(filePath, std::ios::binary);
-    if (!inFile) {
-        qCritical() << "Ошибка открытия файла для чтения";
-        return;
-    }
 
-    for (size_t i = 0; i < NUM_NEYRONS; ++i) {
-        size_t size;
-        inFile.read(reinterpret_cast<char*>(&size), sizeof(size));
-        std::vector<char> buffer(size);
-        inFile.read(buffer.data(), size);
-        list_of_neurons[i].set_str(std::string(buffer.begin(), buffer.end()), 10);
-    }
-
-    inFile.close();
-}
-
-void printVector_n(const std::vector<mpz_class>& list_of_neurons) {
-    int i=0;
-    for (const auto& value : list_of_neurons) {
-        qDebug() <<i<< ":"<< QString::fromStdString(value.get_str());
-        i++;
-    }
-}
 //########################################################################
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -122,6 +98,33 @@ mpz_class activationFunction( // long long list_of_neurons.at(var)
     return (  list_of_neurons.at(var));
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//const QString RANDOM_NUMBERS_FILE_NAME = "random_numbers.bin";
+
+std::vector<mpz_class> readRandomNumbersFromFile(const QString& fileName) {
+    std::vector<mpz_class> numbers;
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly)) {
+        std::cerr << "Failed to open random numbers file" << std::endl;
+        return numbers;
+    }
+    QDataStream in(&file);
+    while (!in.atEnd() && numbers.size() < 205) {
+        QByteArray byteArray;
+        in >> byteArray;
+        numbers.push_back(mpz_class(byteArray.constData()));
+    }
+    file.close();
+    return numbers;
+}
+
+void printVector2(const std::vector<mpz_class>& vec) {
+    for (const auto& number : vec) {
+        std::cout << number.get_str() << std::endl;
+    }
+}
+
+
+
 // конец объявлений функций
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -138,14 +141,18 @@ int main(int argc, char *argv[])
 // читаем синапсы из файла в вектор
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*
 
-    std::vector<mpz_class> read_synapses(NUM_SYNAPSES);
-  readFromFile(read_synapses, FILE_PATH);
+//    std::vector<mpz_class> read_synapses(NUM_SYNAPSES);
+  readFromFile(list_of_synapses
+        //read_synapses
+                 , FILE_PATH);
 
   qDebug() << "Размер list_of_synapses:" << list_of_synapses.size();
     std::cout << "конец чтения синапсов в вектор" << std::endl;
 
   // Вывод значений вектора в консоль
- printVector(read_synapses);
+ printVector(list_of_synapses
+       // read_synapses
+                );
   //   printVector(list_of_synapses);
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     std::cout << "//"
@@ -170,37 +177,29 @@ int main(int argc, char *argv[])
     }
     // Преобразование QString в std::string
     std::string stdFileName_neyroni = fileName_neyroni.toStdString();
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  //   try {
-  //  list_of_neurons=  read205LongLongFromBinaryFile(stdFileName_neyroni);
-         // читаем синапсы из файла в вектор
-         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*
-// const std::string FILE_PATH2 =stdFileName_neyroni;
-         std::vector<mpz_class> read_neyroni(NUM_NEYRONS);
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-         readFromFile2(read_neyroni, stdFileName_neyroni);
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// читаем нейроны из файла в вектор
+    // Чтение файла с 205 случайными числами и преобразование в вектор mpz_class
+ //   std::vector<mpz_class>
+        list_of_neurons = readRandomNumbersFromFile(
+      //  RANDOM_NUMBERS_FILE_NAME
+        fileName_neyroni
+                                                                    );
+    // Вывод вектора в консоль
+    printVector2(//randomVector
+          list_of_neurons       );
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*
+
 
          qDebug() << "Размер list_of_neurons:" << list_of_neurons.size();
          std::cout << "конец чтения нейронов в вектор" << std::endl;
 
-     // } catch (const std::exception &e) {
-     //     std::cerr << e.what() << std::endl;
-     // }
-     printVector_n(read_neyroni);
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
      // Проверка содержимого вектора
-       qDebug() << "Размер list_of_neurons:" << list_of_neurons.size();
-     // for (size_t i = 0; i < list_of_neurons.size(); ++i) {
-     //     std::cout << "Neuron " << i << ": " << list_of_neurons[i] << std::endl;
-     // }
 
-     // // Проверка значения по индексу 200
-     // if (list_of_neurons.size() > 200) {
-     //     std::cout << "list_of_neurons.at(200) = " << list_of_neurons.at(200) << std::endl;
-     //     // здесь нормально показывает
-     // } else {
-     //     std::cerr << "Вектор недостаточного размера." << std::endl;
-     // }
 //###########################################################################
 ////////////////////////// считали нейроны в вектор ////////////////////////////////////////////////////////////////
 
