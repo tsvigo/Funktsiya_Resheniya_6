@@ -15,6 +15,8 @@
 #include <QProcess>
 #include <fstream>
 #include <iostream>
+
+#include <QApplication>
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //###########################################################################
 // переменные:
@@ -25,78 +27,19 @@ int neuron_index = 0, synapse_index = 0;
 std::vector<mpz_class> list_of_neurons;
 std::vector<mpz_class> list_of_synapses;
 constexpr size_t NUM_SYNAPSES = 10105;
+
+constexpr size_t NUM_NEYRONS = 200 ;
 //const mpz_class MAX_VALUE("18446744073709551615");
 const std::string FILE_PATH = "/home/viktor/my_projects_qt_2/sgenerirovaty_sinapsi/random_sinapsi.bin";
 //##################################################################
-//######################## 5 ##################################################
-// Функция для чтения 205 long long чисел из бинарного файла
-std::vector<mpz_class> read205LongLongFromBinaryFile(const std::string &filename)
-{
-    std::ifstream file(filename, std::ios::binary);
-    if (!file) {
-        throw std::runtime_error("Ошибка открытия бинарного файла.");
-    }
 
-    std::vector<mpz_class> list_of_neurons(205);
-    file.read(reinterpret_cast<char *>(list_of_neurons.data()), 205 * sizeof(mpz_class));
-
-    if (file.gcount() != 205 * sizeof(mpz_class)) {
-        throw std::runtime_error("Недостаточно данных в бинарном файле.");
-    }
-
-    return list_of_neurons;
-}
 //###########################################################################
-//############################# 8 ##############################################
-// Функция для чтения mpz_class из QDataStream
-// void readMpzFromStream(QDataStream &in, mpz_class &number) {
-//     QByteArray byteArray;
-//     in >> byteArray;
 
-//     // Инициализация mpz_class из массива байтов
-//     number.set_str(byteArray.toStdString(), 10);
-// }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Функция для чтения чисел-синапсов из бинарного файла
-// std::vector<mpz_class> readNumbersFromFile2(const QString &fileName, size_t count)
-// {
-//     std::vector<mpz_class> list_of_synapses;
-//     list_of_synapses.reserve(count);
 
-//     QFile file(fileName);
-//     if (!file.open(QIODevice::ReadOnly)) {
-//         std::cerr << "Failed to open file for reading." << std::endl;
-//         return list_of_synapses;
-//     }
-
-//     QDataStream in(&file);
-//     mpz_class number;
-//     while (list_of_synapses.size() < count && !in.atEnd()) {
-//         readMpzFromStream(in, number);
-//         list_of_synapses.push_back(number);
-//     }
-
-//     file.close();
-//     return list_of_synapses;
-// }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// std::vector<mpz_class> read_sinapsi_FromBinaryFile(const std::string &filename)
-// {
-//     std::ifstream file(filename, std::ios::binary);
-//     if (!file) {
-//         throw std::runtime_error("Ошибка открытия бинарного файла.");
-//     }
 
-//     std::vector<mpz_class> list_of_synapses(10105);
-//     file.read(reinterpret_cast<char *>(list_of_synapses.data()), 10105 * sizeof(mpz_class));
-
-//     // if (file.gcount() != 10105 * sizeof(mpz_class))
-//     // {
-//     //     throw std::runtime_error("Недостаточно данных в бинарном файле.");
-//     // }
-
-//     return list_of_synapses;
-// }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void readFromFile(std::vector<mpz_class>& list_of_synapses, const std::string& filePath) {
     std::ifstream inFile(filePath, std::ios::binary);
@@ -117,20 +60,40 @@ void readFromFile(std::vector<mpz_class>& list_of_synapses, const std::string& f
 }
 
 void printVector(const std::vector<mpz_class>& list_of_synapses) {
+    int i=0;
     for (const auto& value : list_of_synapses) {
-        qDebug() << QString::fromStdString(value.get_str());
+        qDebug() <<i<< ":"<< QString::fromStdString(value.get_str());
+        i++;
     }
 }
-
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Пример использования функции
-// QString fileName = "numbers.dat";
-// size_t count = 10; // Пример количества чисел для чтения
-// std::vector<mpz_class> numbers = readNumbersFromFile2(fileName, count);
+// Функция для чтения чисел-нейронов из бинарного файла
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void readFromFile2(std::vector<mpz_class>& list_of_neurons, const std::string& filePath) {
+    std::ifstream inFile(filePath, std::ios::binary);
+    if (!inFile) {
+        qCritical() << "Ошибка открытия файла для чтения";
+        return;
+    }
 
-// for (const auto &num : numbers) {
-//     std::cout << num.get_str() << std::endl;
-// }
+    for (size_t i = 0; i < NUM_NEYRONS; ++i) {
+        size_t size;
+        inFile.read(reinterpret_cast<char*>(&size), sizeof(size));
+        std::vector<char> buffer(size);
+        inFile.read(buffer.data(), size);
+        list_of_neurons[i].set_str(std::string(buffer.begin(), buffer.end()), 10);
+    }
+
+    inFile.close();
+}
+
+void printVector_n(const std::vector<mpz_class>& list_of_neurons) {
+    int i=0;
+    for (const auto& value : list_of_neurons) {
+        qDebug() <<i<< ":"<< QString::fromStdString(value.get_str());
+        i++;
+    }
+}
 //########################################################################
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -165,54 +128,83 @@ mpz_class activationFunction( // long long list_of_neurons.at(var)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char *argv[])
 {
-    QCoreApplication a(argc, argv);
+ //   QCoreApplication a(argc, argv);
+
+    // Используем QApplication вместо QCoreApplication, чтобы поддерживать графические компоненты
+    QApplication app(argc, argv);
 //########################################################################################################
     std::cout << "Funktsiya_Resheniya_6" << std::endl;
 //########################################################################################################
 // читаем синапсы из файла в вектор
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*
-    const QString fileName
-        =
-        "/home/viktor/my_projects_qt_2/sgenerirovaty_sinapsi/random_sinapsi.bin"
-        ; // Имя бинарного файла*/
-    // Преобразование QString в std::string
-    std::string stdFileName_sinapsi = fileName.toStdString();
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    const size_t numberCount = 10105;
-  //  list_of_synapses= read_sinapsi_FromBinaryFile(stdFileName_sinapsi) ; //readNumbersFromFile2(fileName, numberCount) ;
-    // Чтение чисел из бинарного файла
 
     std::vector<mpz_class> read_synapses(NUM_SYNAPSES);
   readFromFile(read_synapses, FILE_PATH);
-    // Проверка, что прочитано правильное количество чисел
-    // if (list_of_synapses.size() != numberCount) {
-    //     std::cerr << "File does not contain the expected number of numbers." << std::endl;
-    // }
-    std::cout << "list_of_synapses.size() =" << list_of_synapses.size() << std::endl;
+
+  qDebug() << "Размер list_of_synapses:" << list_of_synapses.size();
     std::cout << "конец чтения синапсов в вектор" << std::endl;
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Проверка содержимого вектора
 
-    // Проверка прочитанных чисел
-    // for (size_t i = 0; i < NUM_SYNAPSES; ++i) {
-    //     if (list_of_synapses[i] != read_synapses[i]) {
-    //         qCritical() << "Ошибка: значения не совпадают на позиции" << i;
-    //         return -1;
-    //     }
-    // }
-
-    // qDebug() << "Все значения совпадают.";
-
-    // Вывод значений вектора в консоль
-    printVector(read_synapses);
+  // Вывод значений вектора в консоль
+ printVector(read_synapses);
+  //   printVector(list_of_synapses);
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     std::cout << "//"
                  "#################################################################################"
                  "#######################"
               << std::endl;
     //###########################################################################
-    //////////////////// считали синапсы в вектор //////////////////////////////////////////////////////////////////////
+//////////////////// считали синапсы в вектор //////////////////////////////////////////////////////////////////////
+    // читаем нейроны в вектор
+
+    // Вызов диалога выбора файла
+    QString fileName_neyroni = QFileDialog::getOpenFileName(nullptr, "Выберите файл",
+                                                            //"/home/viktor/1_rukoy/"
+                                                            "/home/viktor/1_rukoy/scale/combined_numbers/"
+                                                            ,  "bin Files (*.bin)");
+
+    // Проверка, был ли файл выбран
+    if (!fileName_neyroni.isEmpty()) {
+        qDebug() << "Выбранный файл:" << fileName_neyroni;
+    } else {
+        qDebug() << "Файл не был выбран.";
+    }
+    // Преобразование QString в std::string
+    std::string stdFileName_neyroni = fileName_neyroni.toStdString();
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //   try {
+  //  list_of_neurons=  read205LongLongFromBinaryFile(stdFileName_neyroni);
+         // читаем синапсы из файла в вектор
+         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////*
+// const std::string FILE_PATH2 =stdFileName_neyroni;
+         std::vector<mpz_class> read_neyroni(NUM_NEYRONS);
+
+         readFromFile2(read_neyroni, stdFileName_neyroni);
+
+         qDebug() << "Размер list_of_neurons:" << list_of_neurons.size();
+         std::cout << "конец чтения нейронов в вектор" << std::endl;
+
+     // } catch (const std::exception &e) {
+     //     std::cerr << e.what() << std::endl;
+     // }
+     printVector_n(read_neyroni);
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     // Проверка содержимого вектора
+       qDebug() << "Размер list_of_neurons:" << list_of_neurons.size();
+     // for (size_t i = 0; i < list_of_neurons.size(); ++i) {
+     //     std::cout << "Neuron " << i << ": " << list_of_neurons[i] << std::endl;
+     // }
+
+     // // Проверка значения по индексу 200
+     // if (list_of_neurons.size() > 200) {
+     //     std::cout << "list_of_neurons.at(200) = " << list_of_neurons.at(200) << std::endl;
+     //     // здесь нормально показывает
+     // } else {
+     //     std::cerr << "Вектор недостаточного размера." << std::endl;
+     // }
+//###########################################################################
+////////////////////////// считали нейроны в вектор ////////////////////////////////////////////////////////////////
 
 
-    return a.exec();
+
+    return app.exec();
 }
